@@ -41,7 +41,8 @@ declare module 'express-serve-static-core' {
   interface Request {
     user?: JWTPayload
     isAdmin?(): boolean
-    isClient?(): boolean
+    isGerente?(): boolean
+    isCliente?(): boolean
   }
 }
 

@@ -25,8 +25,13 @@ function toDate(input: string): Date {
   return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
 }
 
+// Solo Admin o Gerente pueden ver todos los usuarios
 async function getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
-  console.log('getAllUsers by user ', req.user?._id)
+  if (!req.isAdmin?.() && !req.isGerente?.()) {
+    res.status(403).send('Forbidden: only Admin or Gerente can view users')
+    return
+  }
+
   try {
     const users = await User.find({ isActive: true }).populate('role')
     res.send(users)
@@ -35,6 +40,8 @@ async function getAllUsers(req: Request, res: Response, next: NextFunction): Pro
   }
 }
 
+
+// Obtener usuario por ID (Admin, Gerente o el propio usuario)
 async function getUserById(
   req: Request<{ id: string }>,
   res: Response,
@@ -45,6 +52,11 @@ async function getUserById(
   if (!req.params.id) {
     res.status(500).send('The param id is not defined')
     return
+  }
+
+  if (!req.isAdmin?.() && !req.isGerente?.() && req.user?._id !== req.params.id) {
+    res.status(403).json({ message: 'Access denied' });
+    return 
   }
 
   try {
@@ -66,31 +78,38 @@ async function createUser(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  console.log('createUser: ', req.body)
+  console.log('createUser: ', req.body);
 
-  const user = req.body
+  const user = req.body;
 
   try {
-    const role = await Role.findOne({ name: user.role })
+    const role = await Role.findOne({ name: user.role });
     if (!role) {
-      res.status(404).send('Role not found')
-      return
+      res.status(404).send('Role not found');
+      return;
     }
 
-    const passEncrypted = await bcrypt.hash(user.password, 10)
+    // 🔒 Validación: solo admin puede crear roles que no sean 'cliente'
+    if (!req.isAdmin?.() && role.name !== 'cliente') {
+      res.status(403).send('Only admins can assign this role');
+      return;
+    }
+
+    const passEncrypted = await bcrypt.hash(user.password, 10);
 
     const userCreated = await User.create({
       ...user,
       bornDate: user.bornDate ? toDate(user.bornDate.toString()) : undefined,
       password: passEncrypted,
       role: role._id,
-    })
+    });
 
-    res.send(userCreated)
+    res.send(userCreated);
   } catch (err) {
-    next(err)
+    next(err);
   }
 }
+
 
 async function updateUser(
   req: Request<{ id: string }, unknown, Partial<CreateUserRequest>>,
@@ -104,26 +123,39 @@ async function updateUser(
     return
   }
 
-  if (!req.isAdmin?.() && req.params.id !== req.user?._id) {
-    res.status(403).send('Unauthorized')
-    return
-  }
-
-  // The email can't be updated
-  delete req.body.email
-
   try {
-    const userToUpdate = await User.findById(req.params.id)
-
+    const userToUpdate = await User.findById(req.params.id).populate('role')
     if (!userToUpdate) {
       console.error('User not found')
       res.status(404).send('User not found')
       return
     }
 
+    const targetRole = (userToUpdate.role as any)?.name
+
+    // ✅ Lógica de autorización refinada:
+    // - Admin puede editar a cualquiera.
+    // - Gerente puede editar a cualquiera excepto a Admin.
+    // - Usuario común solo puede editarse a sí mismo.
+    if (req.isAdmin?.()) {
+      // ok
+    } else if (req.isGerente?.()) {
+      if (targetRole === 'admin') {
+        res.status(403).send('Unauthorized: cannot edit an admin');
+        return 
+      }
+    } else if (req.user?._id === req.params.id) {
+      // ok (puede editar su propio perfil)
+    } else {
+      res.status(403).send('Unauthorized');
+      return 
+    }
+
+    // ❌ El email no se puede cambiar
+    delete req.body.email
+
     if (req.body.role) {
       const newRole = await Role.findById(req.body.role)
-
       if (!newRole) {
         console.info('New role not found. Sending 400 to client')
         res.status(400).end()
@@ -137,7 +169,7 @@ async function updateUser(
       req.body.password = passEncrypted
     }
 
-    // This will return the previous status
+    // Esto devuelve el estado anterior, como antes
     await userToUpdate.updateOne(req.body)
     res.send(userToUpdate)
 
@@ -156,6 +188,7 @@ async function updateUser(
   }
 }
 
+ 
 async function deleteUser(
   req: Request<{ id: string }>,
   res: Response,
@@ -169,19 +202,42 @@ async function deleteUser(
   }
 
   try {
-    const user = await User.findById(req.params.id)
-
-    if (!user) {
+    const userToDelete = await User.findById(req.params.id).populate('role')
+    if (!userToDelete) {
       res.status(404).send('User not found')
       return
     }
 
-    await User.deleteOne({ _id: user._id })
+    const targetRole = (userToDelete.role as any)?.name
 
-    res.send(`User deleted :  ${req.params.id}`)
+    // ✅ Lógica de autorización:
+    // - Admin puede borrar a cualquiera
+    // - Gerente puede borrar usuarios, pero no admins ni otros gerentes
+    // - Cliente solo puede borrarse a sí mismo
+    if (req.isAdmin?.()) {
+      // ok
+    } else if (req.isGerente?.()) {
+      if (targetRole === 'admin' || targetRole === 'gerente') {
+        res.status(403).send('Unauthorized: cannot delete admin or other gerente')
+        return 
+      }
+    } else if (req.user?._id === req.params.id) { // (req.user?._id?.toString() === req.params.id)
+      // ok (puede eliminar su propia cuenta)
+        await User.deleteOne({ _id: userToDelete._id })
+        res.send({ message: 'Cuenta eliminada exitosamente' })
+        return
+    } else {
+      res.status(403).send('Unauthorized')
+      return 
+    }
+
+    await User.deleteOne({ _id: userToDelete._id })
+    res.send(`User deleted: ${req.params.id}`)
+
   } catch (err) {
     next(err)
   }
 }
+
 
 export default router

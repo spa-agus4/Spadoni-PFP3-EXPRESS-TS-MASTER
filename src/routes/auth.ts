@@ -27,6 +27,11 @@ async function createUserToken(
   }
 
   try {
+    // 🔹 DEBUG ADICIONAL: Ver qué base ve Mongoose y qué usuarios hay
+    console.log('MongoDB connection readyState:', User.db.readyState) // 1 = conectado
+    const allUsers = await User.find({}, '+password').lean()
+    console.log('Usuarios actualmente en la colección users:')
+    allUsers.forEach(u => console.log(u.email))
     const user = await User.findOne({ email: req.body.email }, '+password')
 
     if (!user) {

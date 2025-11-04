@@ -2,11 +2,8 @@ import jwt from 'jsonwebtoken'
 import createError from 'http-errors'
 import { Request, Response, NextFunction } from 'express'
 import { JWTPayload } from '../types/index'
-// import fs from 'fs'
-// import path from 'path'
 
-// const publicKey = fs.readFileSync(path.join(__dirname, `../keys/base-api-express-generator.pub`))
-
+// Middleware para extraer token
 function getToken(req: Request, next: NextFunction): string | void {
   const TOKEN_REGEX = /^\s*Bearer\s+(\S+)/g
   const matches = TOKEN_REGEX.exec(req.headers.authorization || '')
@@ -27,31 +24,28 @@ function authentication(req: Request, res: Response, next: NextFunction): void {
   }
 
   const token = getToken(req, next)
-
-  if (!token) {
-    return
-  }
+  if (!token) return
 
   try {
-    // Unsecure alternative
+    // Verificamos JWT
     const decoded = jwt.verify(token, 'base-api-express-generator', {
       issuer: 'base-api-express-generator',
     }) as JWTPayload
-
-    // Correct alternative
-    // const decoded = jwt.verify(token, publicKey, {
-    //   algorithms: ['RS256'],
-    //   issuer: 'base-api-express-generator',
-    // }) as JWTPayload
 
     if (!decoded || !decoded._id || !decoded.role) {
       console.error('Error authenticating malformed JWT')
       return next(new createError.Unauthorized())
     }
 
+    // Guardamos el usuario en la request
     req.user = decoded
-    console.info(`User ${decoded._id} authenticated`)
 
+    // 🔹 Agregamos helpers de rol
+    req.isAdmin = () => decoded.role === 'admin'
+    req.isGerente = () => decoded.role === 'gerente'
+    req.isCliente = () => decoded.role === 'cliente'
+
+    console.info(`User ${decoded._id} authenticated as ${decoded.role}`)
     next()
   } catch (err) {
     const error = err as Error
