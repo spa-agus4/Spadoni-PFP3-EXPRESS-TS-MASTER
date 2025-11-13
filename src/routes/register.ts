@@ -1,17 +1,18 @@
-import express, { Request, Response, NextFunction } from 'express'
-import bcrypt from 'bcrypt'
-import User from '../schemas/user'
-import Role from '../schemas/role'
-import { CreateUserRequest } from '../types/index'
+import express, { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
+import User from '../schemas/user';
+import Role from '../schemas/role';
+import generateUserToken from '../utils/generate-user-and-token';
+import { CreateUserRequest } from '../types/index';
 
-const router = express.Router()
+const router = express.Router();
 
-router.post('/', registerUser)
+router.post('/', registerUser);
 
 async function registerUser(
   req: Request<Record<string, never>, unknown, CreateUserRequest>,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> {
   const {
     firstName,
@@ -21,32 +22,35 @@ async function registerUser(
     phone,
     bornDate,
     governmentId,
-  } = req.body
+  } = req.body;
 
   try {
     // Rol por defecto: cliente
-    const role = await Role.findOne({ name: 'cliente' })
+    const role = await Role.findOne({ name: 'cliente' });
     if (!role) {
-      res.status(500).send('Client role not found')
-      return
+      res.status(500).json({ message: 'Client role not found' });
+      return;
     }
 
     // Validaciones básicas
-    if (!governmentId || !governmentId.type || !governmentId.number) {
-      res.status(400).json({ message: 'governmentId.type and governmentId.number are required' })
-      return
+    if (!governmentId?.type || !governmentId?.number) {
+      res.status(400).json({ message: 'governmentId.type and governmentId.number are required' });
+      return;
     }
 
+    // Evitar duplicados
     const existingUser = await User.findOne({
       $or: [{ email }, { 'governmentId.number': governmentId.number }],
-    })
+    });
     if (existingUser) {
-      res.status(409).send('User already exists')
-      return
+      res.status(409).json({ message: 'User already exists' });
+      return;
     }
 
-    const passEncrypted = await bcrypt.hash(password, 10)
+    // Encriptar contraseña
+    const passEncrypted = await bcrypt.hash(password, 10);
 
+    // Crear usuario
     const userCreated = await User.create({
       firstName,
       lastName,
@@ -57,15 +61,19 @@ async function registerUser(
       governmentId,
       role: role._id,
       isActive: true,
-    })
+    });
+
+    // 🔹 Generar token con la utilidad existente
+    const { token, user } = await generateUserToken(req, userCreated);
 
     res.status(201).json({
       message: 'User registered successfully',
-      userId: userCreated._id,
-    })
+      token,
+      user,
+    });
   } catch (err) {
-    next(err)
+    next(err);
   }
 }
 
-export default router
+export default router;
