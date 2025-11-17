@@ -30,7 +30,7 @@ router.post("/", async (req: Request<Record<string, never>, unknown, CreateSedeR
   }
 });
 
-// 🔄 Actualizar una sede por nombre (update parcial o total)
+// Actualizar una sede por nombre
 router.patch("/:nombre", async (req: Request<{ nombre: string }>, res: Response, next: NextFunction): Promise<void> => {
   const { nombre } = req.params;
   const updates = req.body; // puede venir con uno o varios campos
@@ -58,7 +58,7 @@ router.patch("/:nombre", async (req: Request<{ nombre: string }>, res: Response,
   }
 });
 
-// Eliminar (desactivar) una sede por nombre
+// Desactivar una sede por nombre
 router.delete("/:nombre", async (req: Request<{ nombre: string }>, res: Response, next: NextFunction): Promise<void> => {
   const { nombre } = req.params;
 

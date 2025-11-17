@@ -25,7 +25,6 @@ async function registerUser(
   } = req.body;
 
   try {
-    // Rol por defecto: cliente
     const role = await Role.findOne({ name: 'cliente' });
     if (!role) {
       res.status(500).json({ message: 'Client role not found' });
@@ -63,7 +62,7 @@ async function registerUser(
       isActive: true,
     });
 
-    // 🔹 Generar token con la utilidad existente
+    // Generacion de token
     const { token, user } = await generateUserToken(req, userCreated);
 
     res.status(201).json({

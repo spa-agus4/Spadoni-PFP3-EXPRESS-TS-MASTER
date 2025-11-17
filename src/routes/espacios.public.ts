@@ -35,7 +35,7 @@ router.get("/sede/:sedeId", async (req, res, next) => {
   }
 });
 
-// Obtener un espacio por ID  👈 PRIMERO ESTO
+// Obtener un espacio por ID
 router.get("/id/:id", async (req, res, next) => {
   try {
     const espacio = await Espacio.findById(req.params.id).populate("sede");
@@ -51,7 +51,7 @@ router.get("/id/:id", async (req, res, next) => {
   }
 });
 
-// Obtener un espacio por nombre 👈 RUTA ESPECÍFICA
+// Obtener un espacio por nombre
 router.get("/nombre/:nombre", async (req, res, next) => {
   try {
     const espacio = await Espacio.findOne({ nombre: req.params.nombre.toLowerCase() }).populate("sede");

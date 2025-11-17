@@ -4,7 +4,7 @@ import { CreateEspacioRequest } from "../types/index";
 
 const router = express.Router();
 
-// Crear una nueva sede
+// Crear un espacio
 router.post("/", async (req: Request<Record<string, never>, unknown, CreateEspacioRequest>, res: Response, next: NextFunction): Promise<void> => {
   console.log("createEspacio: ", req.body);
   const espacio = req.body;
@@ -30,10 +30,10 @@ router.post("/", async (req: Request<Record<string, never>, unknown, CreateEspac
   }
 });
 
-// 🔄 Actualizar una sede por nombre (update parcial o total)
+// Actualizar espacio por nombre
 router.patch("/:nombre", async (req: Request<{ nombre: string }>, res: Response, next: NextFunction): Promise<void> => {
   const { nombre } = req.params;
-  const updates = req.body; // puede venir con uno o varios campos
+  const updates = req.body;
 
   if (!req.isAdmin?.()) {
     res.status(403).send("Only admins can update Espacios");
@@ -58,7 +58,7 @@ router.patch("/:nombre", async (req: Request<{ nombre: string }>, res: Response,
   }
 });
 
-// Eliminar (desactivar) una sede por nombre
+// Desactivar una sede por nombre
 router.delete("/:nombre", async (req: Request<{ nombre: string }>, res: Response, next: NextFunction): Promise<void> => {
   const { nombre } = req.params;
 

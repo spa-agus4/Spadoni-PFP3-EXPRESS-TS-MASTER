@@ -89,7 +89,7 @@ async function createUser(
       return;
     }
 
-    // 🔒 Validación: solo admin puede crear roles que no sean 'cliente'
+    // solo admin puede crear roles que no sean cliente
     if (!req.isAdmin?.() && role.name !== 'cliente') {
       res.status(403).send('Only admins can assign this role');
       return;
@@ -133,25 +133,21 @@ async function updateUser(
 
     const targetRole = (userToUpdate.role as any)?.name
 
-    // ✅ Lógica de autorización refinada:
-    // - Admin puede editar a cualquiera.
-    // - Gerente puede editar a cualquiera excepto a Admin.
-    // - Usuario común solo puede editarse a sí mismo.
+    // - Admin puede editar todos los usuarios
+    // - Gerente puede editar a Clientes solo
+    // - Cliente solo puede editar su perfil
     if (req.isAdmin?.()) {
-      // ok
     } else if (req.isGerente?.()) {
       if (targetRole === 'admin') {
         res.status(403).send('Unauthorized: cannot edit an admin');
         return 
       }
     } else if (req.user?._id === req.params.id) {
-      // ok (puede editar su propio perfil)
     } else {
       res.status(403).send('Unauthorized');
       return 
     }
 
-    // ❌ El email no se puede cambiar
     delete req.body.email
 
     if (req.body.role) {
@@ -169,7 +165,6 @@ async function updateUser(
       req.body.password = passEncrypted
     }
 
-    // Esto devuelve el estado anterior, como antes
     await userToUpdate.updateOne(req.body)
     res.send(userToUpdate)
 
@@ -210,10 +205,7 @@ async function deleteUser(
 
     const targetRole = (userToDelete.role as any)?.name
 
-    // ✅ Lógica de autorización:
-    // - Admin puede borrar a cualquiera
-    // - Gerente puede borrar usuarios, pero no admins ni otros gerentes
-    // - Cliente solo puede borrarse a sí mismo
+    // misma logica de roles que en editar, pero para eliminar
     if (req.isAdmin?.()) {
       // ok
     } else if (req.isGerente?.()) {
@@ -222,7 +214,6 @@ async function deleteUser(
         return 
       }
     } else if (req.user?._id === req.params.id) { // (req.user?._id?.toString() === req.params.id)
-      // ok (puede eliminar su propia cuenta)
         await User.deleteOne({ _id: userToDelete._id })
         res.send({ message: 'Cuenta eliminada exitosamente' })
         return

@@ -27,7 +27,7 @@ function authentication(req: Request, res: Response, next: NextFunction): void {
   if (!token) return
 
   try {
-    // Verificamos JWT
+    // Verifica el JWT
     const decoded = jwt.verify(token, 'base-api-express-generator', {
       issuer: 'base-api-express-generator',
     }) as JWTPayload
@@ -37,10 +37,9 @@ function authentication(req: Request, res: Response, next: NextFunction): void {
       return next(new createError.Unauthorized())
     }
 
-    // Guardamos el usuario en la request
+    // Guarda el usuario en la request
     req.user = decoded
 
-    // 🔹 Agregamos helpers de rol
     req.isAdmin = () => decoded.role === 'admin'
     req.isGerente = () => decoded.role === 'gerente'
     req.isCliente = () => decoded.role === 'cliente'

@@ -57,7 +57,6 @@ router.post("/", async (req, res, next) => {
   try {
     const { espacio, usuario, inicio, fin } = req.body;
 
-    // ❌ Validación básica
     if (!espacio || !usuario || !inicio || !fin) {
       res.status(400).send("Faltan datos requeridos");
       return;
@@ -68,7 +67,7 @@ router.post("/", async (req, res, next) => {
       return;
     }
 
-    // ❌ Validar solapamiento de reservas del mismo espacio
+    // Validar solapamiento de reservas del mismo espacio
     const overlapping = await Reserva.findOne({
       espacio,
       $or: [
@@ -80,8 +79,6 @@ router.post("/", async (req, res, next) => {
       res.status(400).send("El espacio ya está reservado en ese horario");
       return;
     }
-
-    // TODO opcional → validar reservas solapadas del usuario
 
     const reserva = new Reserva({
       espacio,
@@ -99,7 +96,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-// PUT /reservas/:id
+// cancelar reserva
 router.put("/:id", async (req, res, next) => {
   try {
     const reservaId = req.params.id;
