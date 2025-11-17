@@ -10,6 +10,8 @@ import userRouter from './routes/user'
 import sedeRouter from './routes/sedes'
 import sedePublicRouter from './routes/sedes.public'
 import espacioRouter from './routes/espacios'
+import reservaRouter from './routes/reservas'
+import espacioPublicRouter from './routes/espacios.public'
 import authentication from './middlewares/authentication'
 import authorization from './middlewares/authorization'
 
@@ -25,6 +27,7 @@ app.use(cookieParser()) // Permite leer cookies del navegador
 
 app.use('/register', registerRouter);
 app.use('/sedes.public', sedePublicRouter)
+app.use('/espacios.public', espacioPublicRouter)
 // 🔹 2. Middleware de autorización general
 app.use(authorization)
 // Este probablemente verifica si el usuario tiene permisos para ciertos endpoints.
@@ -35,6 +38,7 @@ app.use('/', statusRouter) // Ruta base para verificar si el servidor está vivo
 app.use('/auth', authRouter) // Aquí se monta tu archivo auth.ts (para login)
 app.use('/sedes', authentication, sedeRouter)
 app.use('/espacios', authentication, espacioRouter)
+app.use('/reservas', authentication, reservaRouter)
 //app.use('/users', authentication, authorization, userRouter) // Solo usuarios autenticados acceden a /users
 app.use('/users', authentication, userRouter) // Solo usuarios autenticados acceden a /users
 

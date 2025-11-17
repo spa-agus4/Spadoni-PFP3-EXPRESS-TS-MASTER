@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document } from "mongoose";
-import { IEspacio } from '../types/index'
+import mongoose, { Schema } from "mongoose";
+import { IEspacio } from "../types/index";
 
-const { ObjectId } = Schema.Types
+const { ObjectId } = Schema.Types;
 
 const espacioSchema = new Schema<IEspacio>(
   {
@@ -10,8 +10,7 @@ const espacioSchema = new Schema<IEspacio>(
     capacidad: { type: Number, required: true },
     descripcion: String,
     foto: String,
-    sede: String,
-    //sede: { type: ObjectId, ref: "Sede", required: true },
+    sede: { type: ObjectId, ref: "Sede", required: true },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

@@ -4,34 +4,6 @@ import { CreateEspacioRequest } from "../types/index";
 
 const router = express.Router();
 
-// Obtener todas los espacios activas
-router.get("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    //const espacios = await Espacio.find({ isActive: true }).populate("sede");
-    const espacios = await Espacio.find({ isActive: true });
-    res.send(espacios);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Obtener una espacio por nombre
-router.get("/:nombre", async (req: Request<{ nombre: string }>, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    //const espacio = await Espacio.findOne({ nombre: req.params.nombre.toLowerCase() }).populate("sede");
-    const espacio = await Espacio.findOne({ nombre: req.params.nombre.toLowerCase() });
-    
-    if (!espacio) {
-      res.status(404).send("Espacio not found");
-      return;
-    }
-
-    res.send(espacio);
-  } catch (err) {
-    next(err);
-  }
-});
-
 // Crear una nueva sede
 router.post("/", async (req: Request<Record<string, never>, unknown, CreateEspacioRequest>, res: Response, next: NextFunction): Promise<void> => {
   console.log("createEspacio: ", req.body);

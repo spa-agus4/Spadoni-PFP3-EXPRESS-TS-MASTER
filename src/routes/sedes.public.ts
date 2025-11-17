@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
 import Sede from "../schemas/sede";
-import Espacio from "../schemas/espacio";
 import { CreateSedeRequest } from "../types/index";
 
 const router = express.Router();
@@ -8,7 +7,7 @@ const router = express.Router();
 // Obtener todas las sedes activas
 router.get("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sedes = await Sede.find({ isActive: true }).populate("espacios");
+    const sedes = await Sede.find({ isActive: true });
     res.send(sedes);
   } catch (err) {
     next(err);
@@ -18,7 +17,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction): Promise
 // Obtener una sede por nombre
 router.get("/:nombre", async (req: Request<{ nombre: string }>, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sede = await Sede.findOne({ nombre: req.params.nombre.toLowerCase() }).populate("espacios");
+    const sede = await Sede.findOne({ nombre: req.params.nombre.toLowerCase() });
 
     if (!sede) {
       res.status(404).send("Sede not found");

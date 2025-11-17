@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
 import Sede from "../schemas/sede";
-import Espacio from "../schemas/espacio";
 import { CreateSedeRequest } from "../types/index";
 
 const router = express.Router();
@@ -46,7 +45,7 @@ router.patch("/:nombre", async (req: Request<{ nombre: string }>, res: Response,
       { nombre: nombre.toLowerCase() },
       { $set: updates },
       { new: true, runValidators: true }
-    ).populate("espacios");
+    );
 
     if (!updatedSede) {
       res.status(404).send("Sede not found");

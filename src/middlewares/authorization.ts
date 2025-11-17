@@ -5,6 +5,7 @@ interface AuthenticatedRequest extends Request {
   isAdmin(): boolean
   isGerente(): boolean
   isCliente(): boolean
+  isUser(): boolean
 }
 
 function authorization(req: Request, res: Response, next: NextFunction): void {
@@ -20,6 +21,10 @@ function authorization(req: Request, res: Response, next: NextFunction): void {
 
   authReq.isCliente = function isCliente(): boolean {
     return !!(authReq.user && authReq.user.role === 'cliente')
+  }
+
+  authReq.isUser = function isUser(): boolean {
+    return !!(authReq.user)
   }
 
   return next()

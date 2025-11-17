@@ -16,9 +16,14 @@ export interface IUser extends Document {
 }
 
 export type GovernmentIdType = 'cuil' | 'cuit' | 'dni' | 'lc' | 'le' | 'pas'
+export type EstadoReserva =
+  | "programada"  // se creó, fecha futura
+  | "realizada"   // fecha pasada
+  | "cancelada";  // cancelada manualmente antes de la fecha
 
 // Role Types
 export interface IRole extends Document {
+
   _id: Types.ObjectId
   name: string
   description?: string
@@ -34,19 +39,26 @@ export interface ISede extends Document {
   direccion: string;
   foto?: string;
   phone?: string;
-  espacios: Types.ObjectId[] | IEspacio[];
+  //espacios: Types.ObjectId[] | IEspacio[];
   isActive: boolean;
 }
 
 export interface IEspacio extends Document {
-  nombre: string
-  precio?: number
-  capacidad: number
-  descripcion?: string
-  foto?: string
-  sede: string
-  //sede: Types.ObjectId// referencia a Sede
-  isActive: boolean
+  nombre: string;
+  precio?: number;
+  capacidad: number;
+  descripcion?: string;
+  foto?: string;
+  sede: Types.ObjectId;
+  isActive: boolean;
+}
+
+export interface IReserva extends Document {
+  espacio: Types.ObjectId;
+  usuario: Types.ObjectId;
+  inicio: Date;
+  fin: Date;  // contienen la fecha de reserva y la hora
+  estado: EstadoReserva;
 }
 
 
@@ -67,6 +79,7 @@ declare module 'express-serve-static-core' {
     isAdmin?(): boolean
     isGerente?(): boolean
     isCliente?(): boolean
+    isUser?(): boolean
   }
 }
 
@@ -101,7 +114,7 @@ export interface CreateSedeRequest {
   horaCierre: Date
   direccion: string
   foto: string
-  espacios?: Array<Object>
+  //espacios?: Array<Object>
   phone?: string
 }
 
@@ -111,8 +124,16 @@ export interface CreateEspacioRequest {
   capacidad: number
   descripcion?: string
   foto?: string
-  sede: string
+  sede: Types.ObjectId
 }
+
+export interface CreateReservaRequest {
+  espacio: Types.ObjectId;
+  usuario: Types.ObjectId;
+  inicio: Date;
+  fin: Date;  // contienen la fecha de reserva y la hora
+}
+
 
 // Environment Variables
 export interface EnvironmentVariables {

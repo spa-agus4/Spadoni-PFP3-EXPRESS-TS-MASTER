@@ -44,6 +44,7 @@ function authentication(req: Request, res: Response, next: NextFunction): void {
     req.isAdmin = () => decoded.role === 'admin'
     req.isGerente = () => decoded.role === 'gerente'
     req.isCliente = () => decoded.role === 'cliente'
+    //req.isUser
 
     console.info(`User ${decoded._id} authenticated as ${decoded.role}`)
     next()
