@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\bin",
+    "\\src\\middlewares",
+    "\\src\\routes",
+    "\\src\\schemas",
+    "\\src\\types",
+    "\\src\\utils"
+  ],
+  "SelectedNode": "\\src\\schemas\\user.ts",
+  "PreviewInSolutionExplorer": false
+}
